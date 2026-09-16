@@ -2,6 +2,31 @@
 title: "Albums"
 ---
 
-This is a Quarto website.
+```{ojs}
+//| echo: false
+albums = FileAttachment("data/drake_albums.csv").csv()
 
-To learn more about Quarto websites visit <https://quarto.org/docs/websites>.
+viewof selected = Inputs.select(albums, {
+  label: "Select an album:",
+  format: d => d.title
+})
+```
+
+```{ojs}
+//| echo: false
+html`
+<div style="margin-top: 1.5em;">
+  <h3>${selected.title}</h3>
+  <p><strong>Release Date:</strong> ${selected.release_date}</p>
+  <p><strong>Total Spotify Streams:</strong> ${Number(selected.streams).toLocaleString()}</p>
+  <img src="${selected.cover_path}" alt="${selected.title}" style="max-width: 350px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+
+  <h4 style="margin-top: 1em;">Top 3 Most Streamed Songs</h4>
+  <ol>
+    <li>${selected.top_song_1}</li>
+    <li>${selected.top_song_2}</li>
+    <li>${selected.top_song_3}</li>
+  </ol>
+</div>
+`
+```
