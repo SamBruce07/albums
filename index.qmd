@@ -4,9 +4,17 @@ title: "Albums"
 
 ```{ojs}
 //| echo: false
-albums = FileAttachment("data/drake_albums.csv").csv()
+albums = FileAttachment("data/albums.csv").csv()
 
-viewof selected = Inputs.select(albums, {
+artists = [...new Set(albums.map(d => d.artist))]
+
+viewof selectedArtist = Inputs.select(artists, {
+  label: "Select an artist:"
+})
+
+filteredAlbums = albums.filter(d => d.artist === selectedArtist)
+
+viewof selected = Inputs.select(filteredAlbums, {
   label: "Select an album:",
   format: d => d.title
 })
@@ -16,17 +24,22 @@ viewof selected = Inputs.select(albums, {
 //| echo: false
 html`
 <div style="margin-top: 1.5em;">
-  <h3>${selected.title}</h3>
-  <p><strong>Release Date:</strong> ${selected.release_date}</p>
-  <p><strong>Total Spotify Streams:</strong> ${Number(selected.streams).toLocaleString()}</p>
-  <img src="${selected.cover_path}" alt="${selected.title}" style="max-width: 350px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+  ${selected ? html`
+    <h3>${selected.title}</h3>
+    <p><strong>Artist:</strong> ${selected.artist}</p>
+    <p><strong>Release Date:</strong> ${selected.release_date}</p>
+    ${selected.streams ? html`<p><strong>Total Spotify Streams:</strong> ${Number(selected.streams).toLocaleString()}</p>` : ""}
+    ${selected.cover_path ? html`<img src="${selected.cover_path}" alt="${selected.title}" style="max-width: 350px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">` : ""}
 
-  <h4 style="margin-top: 1em;">Top 3 Most Streamed Songs</h4>
-  <ol>
-    <li>${selected.top_song_1}</li>
-    <li>${selected.top_song_2}</li>
-    <li>${selected.top_song_3}</li>
-  </ol>
+    ${selected.top_song_1 ? html`
+      <h4 style="margin-top: 1em;">Top 3 Most Streamed Songs</h4>
+      <ol>
+        <li>${selected.top_song_1}</li>
+        <li>${selected.top_song_2}</li>
+        <li>${selected.top_song_3}</li>
+      </ol>
+    ` : ""}
+  ` : ""}
 </div>
 `
 ```
