@@ -12,31 +12,92 @@ viewof selectedArtist = Inputs.select(artists, {
   label: "Select an artist:"
 })
 
+artistImages = ({
+  "Ariana Grande": "data/artists/ariana_grande.jpg",
+  "Bad Bunny": "data/artists/bad_bunny.jpg",
+  "Billie Eilish": "data/artists/billie_eilish.jpg",
+  "Bruce Springsteen": "data/artists/bruce_springsteen.jpg",
+  "Chappell Roan": "data/artists/chappell_roan.jpg",
+  "Doja Cat": "data/artists/doja_cat.jpg",
+  "Drake": "data/artists/drake.jpg",
+  "Dua Lipa": "data/artists/dua_lipa.jpg",
+  "Harry Styles": "data/artists/harry_styles.jpg",
+  "Kendrick Lamar": "data/artists/kendrick_lamar.jpg",
+  "Kodak Black": "data/artists/kodak_black.png",
+  "Olivia Rodrigo": "data/artists/olivia_rodrigo.jpg",
+  "Post Malone": "data/artists/post_malone.jpg",
+  "Sabrina Carpenter": "data/artists/sabrina_carpenter.jpg",
+  "SZA": "data/artists/sza.jpg",
+  "Taylor Swift": "data/artists/taylor_swift.png",
+  "The Weeknd": "data/artists/the_weeknd.jpg",
+  "Travis Scott": "data/artists/travis_scott.jpg",
+  "Tyler, The Creator": "data/artists/tyler_the_creator.jpg"
+})
+
+html`
+<div id="artist-backdrop">
+  <div class="backdrop-photo" style="background-image: url('${artistImages[selectedArtist] || ""}');"></div>
+  <div class="backdrop-gradient"></div>
+</div>
+`
+
+
 filteredAlbums = albums.filter(d => d.artist === selectedArtist)
 
 viewof selected = Inputs.select(filteredAlbums, {
   label: "Select an album:",
   format: d => d.title
 })
+
+fetchPreview = async (artist, song, existingUrl) => {
+  if (existingUrl && existingUrl !== "NA" && existingUrl !== "") return existingUrl;
+  if (!song || !artist) return null;
+  try {
+    const clean = song.replace(/\s*\(.*?\)/g, "").trim();
+    const query = encodeURIComponent(`${artist} ${clean}`);
+    const res = await fetch(`https://itunes.apple.com/search?term=${query}&entity=song&limit=1`);
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.results?.[0]?.previewUrl || null;
+  } catch (e) {
+    return null;
+  }
+}
+
+preview1 = selected && selected.top_song_1 ? fetchPreview(selected.artist, selected.top_song_1, selected.top_song_1_preview) : null
+preview2 = selected && selected.top_song_2 ? fetchPreview(selected.artist, selected.top_song_2, selected.top_song_2_preview) : null
+preview3 = selected && selected.top_song_3 ? fetchPreview(selected.artist, selected.top_song_3, selected.top_song_3_preview) : null
 ```
 
 ```{ojs}
 //| echo: false
 html`
-<div style="margin-top: 1.5em;">
+<div class="album-card">
   ${selected ? html`
     <h3>${selected.title}</h3>
     <p><strong>Artist:</strong> ${selected.artist}</p>
     <p><strong>Release Date:</strong> ${selected.release_date}</p>
     ${selected.streams ? html`<p><strong>Total Spotify Streams:</strong> ${Number(selected.streams).toLocaleString()}</p>` : ""}
+    ${selected.youtube_views ? html`<p><strong>Total YouTube Views:</strong> ${Number(selected.youtube_views).toLocaleString()}</p>` : ""}
     ${selected.cover_path ? html`<img src="${selected.cover_path}" alt="${selected.title}" style="max-width: 350px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">` : ""}
 
     ${selected.top_song_1 ? html`
       <h4 style="margin-top: 1em;">Top 3 Most Streamed Songs</h4>
-      <ol>
-        <li>${selected.top_song_1}</li>
-        <li>${selected.top_song_2}</li>
-        <li>${selected.top_song_3}</li>
+      <ol style="padding-left: 1.2em;">
+        <li style="margin-bottom: 0.8em;">
+          <div><strong>${selected.top_song_1}</strong></div>
+          ${preview1 ? html`<audio controls style="margin-top: 4px; height: 32px; width: 100%; max-width: 320px;" src="${preview1}"></audio>` : ""}
+        </li>
+        ${selected.top_song_2 ? html`
+        <li style="margin-bottom: 0.8em;">
+          <div><strong>${selected.top_song_2}</strong></div>
+          ${preview2 ? html`<audio controls style="margin-top: 4px; height: 32px; width: 100%; max-width: 320px;" src="${preview2}"></audio>` : ""}
+        </li>` : ""}
+        ${selected.top_song_3 ? html`
+        <li style="margin-bottom: 0.8em;">
+          <div><strong>${selected.top_song_3}</strong></div>
+          ${preview3 ? html`<audio controls style="margin-top: 4px; height: 32px; width: 100%; max-width: 320px;" src="${preview3}"></audio>` : ""}
+        </li>` : ""}
       </ol>
     ` : ""}
   ` : ""}
